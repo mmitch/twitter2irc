@@ -129,6 +129,7 @@ sub do_twitter_poll
 ##### STARTUP
 
 # initialize Net::Twitter
+debug 'initializing Net::Twitter...';
 my $nt = Net::Twitter->new(traits => [qw/API::Search/]);
 if ( -r $cachefile) {
     read_cachefile;
@@ -137,9 +138,14 @@ if ( -r $cachefile) {
 }
 
 # initialize Net::IRC
+debug 'initializing Net::IRC...';
 my $irc = new Net::IRC;
 my $conn = $irc->newconn(Nick    => $ircnick,
-			 Server  => $ircserver);
+			 Server  => $ircserver,
+                         Ircname => 'http://github.com/mmitch/twitter2irc')
+    or die "can't connect to IRC.\n";
+
+debug 'installing handlers...';
 $conn->schedule(30, \&do_twitter_poll, $nt); # initial poll after 30
 $conn->add_handler('public', \&on_public);
 $conn->add_handler('join',   \&on_join);
@@ -148,4 +154,5 @@ $conn->add_global_handler(376, \&on_connect);
 $conn->add_global_handler(433, \&on_nick_taken);
 
 ##### MAIN LOOP
+debug 'starting main loop...';
 $irc->start();
