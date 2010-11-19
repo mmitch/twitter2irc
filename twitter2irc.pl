@@ -106,16 +106,21 @@ sub do_twitter_poll
 
     debug 'waking up';
     foreach my $search (@{$searches}) {
-	my $result = $nt->search( {
+	
+	if (my $result = $nt->search( {
 	    'q' => $search->{search},
-	    'since_id' => $search->{lastid}
-				  } );
-	# TODO: error handling :)
-	$search->{lastid} = $result->{max_id};
-	foreach my $tweet (@{$result->{results}}) {
-	    # TODO: charset conversion
-	    # TODO: print timestamp
-	    $self->privmsg($ircchannel, '@'.$tweet->{from_user}.': '.$tweet->{text});
+	    'since_id' => $search->{lastid} } )
+	    ) {
+
+	    $search->{lastid} = $result->{max_id};
+	    foreach my $tweet (@{$result->{results}}) {
+		# TODO: charset conversion
+		# TODO: print timestamp
+		$self->privmsg($ircchannel, '@'.$tweet->{from_user}.': '.$tweet->{text});
+	    }
+	} else {
+	    # TODO: or print errors to IRC?
+	    debug "search error: $nt->http_error $nt->http_message\n";
 	}
     }
     write_cachefile;
@@ -130,7 +135,8 @@ sub do_twitter_poll
 
 # initialize Net::Twitter
 debug 'initializing Net::Twitter...';
-my $nt = Net::Twitter->new(traits => [qw/API::Search/]);
+my $nt = Net::Twitter->new(traits => [qw/API::Search WrapErrors/])
+    or die "can't create Net::Twitter object.\n";
 if ( -r $cachefile) {
     read_cachefile;
 } else {
