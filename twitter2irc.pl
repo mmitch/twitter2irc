@@ -114,7 +114,6 @@ sub do_twitter_poll
 
 	    $search->{lastid} = $result->{max_id};
 	    foreach my $tweet (@{$result->{results}}) {
-		# TODO: charset conversion
 		# TODO: print timestamp
 		$self->privmsg($ircchannel, '@'.$tweet->{from_user}.': '.$tweet->{text});
 	    }
