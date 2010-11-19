@@ -127,7 +127,7 @@ sub do_twitter_poll
 	    ) {
 
 	    $search->{lastid} = $result->{max_id};
-	    foreach my $tweet (@{$result->{results}}) {
+	    foreach my $tweet (reverse @{$result->{results}}) {
 		$self->privmsg($ircchannel, format_date($tweet->{created_at}) . ' @'.$tweet->{from_user}.': '.$tweet->{text});
 	    }
 	} else {
