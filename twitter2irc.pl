@@ -1,6 +1,8 @@
 #!/usr/bin/perl -w
 use strict;
 use Data::Dumper;
+use DateTime;
+use DateTime::Format::Strptime;
 use Net::IRC;
 use Net::Twitter;
 
@@ -22,13 +24,25 @@ my $searches = [
     }
     ];
 
-
 ##### SUBROUTINES
+
+# global variable declarations
+my ($local_tz, $datetime_parser, $datetime_formatter);
 
 # miscellaneous
 sub debug
 {
+    # comment out for serenity
     print STDERR "@_\n";
+}
+
+sub format_date
+{
+    my $date = shift;
+    my $date_obj = $datetime_parser->parse_datetime($date);
+    return $date unless $date_obj;
+    $date_obj->set_time_zone( $local_tz );
+    return $date_obj->hms;
 }
 
 
@@ -114,8 +128,7 @@ sub do_twitter_poll
 
 	    $search->{lastid} = $result->{max_id};
 	    foreach my $tweet (@{$result->{results}}) {
-		# TODO: print timestamp
-		$self->privmsg($ircchannel, '@'.$tweet->{from_user}.': '.$tweet->{text});
+		$self->privmsg($ircchannel, format_date($tweet->{created_at}) . ' @'.$tweet->{from_user}.': '.$tweet->{text});
 	    }
 	} else {
 	    # TODO: or print errors to IRC?
@@ -132,9 +145,14 @@ sub do_twitter_poll
 
 ##### STARTUP
 
+# initialize DateTime
+$local_tz = DateTime::TimeZone->new( name => 'local' );
+$datetime_parser = DateTime::Format::Strptime->new(pattern => '%a, %d %b %Y %T %z')
+    or die "can't create Date::Time::Format::Strptime.\n";
+
 # initialize Net::Twitter
 debug 'initializing Net::Twitter...';
-my $nt = Net::Twitter->new(traits => [qw/API::Search WrapErrors/])
+my $nt = Net::Twitter->new(traits => [qw/API::Search WrapError/])
     or die "can't create Net::Twitter object.\n";
 if ( -r $cachefile) {
     read_cachefile;
