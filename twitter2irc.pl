@@ -15,6 +15,7 @@ my $pollinterval = 180;
 my $ircnick      = 'zwobot';
 my $ircserver    = 'irc.mitch.h.shuttle.de';
 my $ircchannel   = '#hannover';
+my $irccharset   = 'utf8';
 
 # initial configuration seed (when no cache exists)
 my $searches = [
@@ -114,6 +115,8 @@ sub on_public {
     }
 }
 
+
+# IRC actions
 sub do_twitter_poll
 {
     my ($self, $nt) = @_;
@@ -167,6 +170,7 @@ my $conn = $irc->newconn(Nick    => $ircnick,
 			 Server  => $ircserver,
                          Ircname => 'http://github.com/mmitch/twitter2irc')
     or die "can't connect to IRC.\n";
+binmode $conn->socket, $irccharset;
 
 debug 'installing handlers...';
 $conn->schedule(30, \&do_twitter_poll, $nt); # initial poll after 30
