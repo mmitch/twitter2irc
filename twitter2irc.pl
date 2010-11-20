@@ -122,6 +122,7 @@ sub do_twitter_poll
     my ($self, $nt) = @_;
 
     debug 'waking up';
+    my $sleep = 0;
     foreach my $search (@{$searches}) {
 	
 	if (my $result = $nt->search( {
@@ -133,6 +134,10 @@ sub do_twitter_poll
 	    foreach my $tweet (reverse @{$result->{results}}) {
 		$self->privmsg($ircchannel, format_date($tweet->{created_at}) . ' @'.$tweet->{from_user}.': '.$tweet->{text});
 	    }
+
+	    # don't flood!
+	    $sleep += 0.5;
+	    sleep int($sleep);
 	} else {
 	    # TODO: or print errors to IRC?
 	    debug "search error: $nt->http_error $nt->http_message\n";
