@@ -33,17 +33,21 @@ my ($local_tz, $datetime_parser, $datetime_formatter);
 # miscellaneous
 sub debug
 {
-    # comment out for serenity
-    print STDERR "@_\n";
+    print STDERR "@_\n"; # comment out for serenity
 }
 
-sub format_date
+sub format_epoch
+{
+    my $epoch = shift;
+    return DateTime->from_epoch( epoch => $epoch, time_zone => $local_tz)->hms;
+}
+
+sub get_epoch
 {
     my $date = shift;
     my $date_obj = $datetime_parser->parse_datetime($date);
-    return $date unless $date_obj;
-    $date_obj->set_time_zone( $local_tz );
-    return $date_obj->hms;
+    return time unless $date_obj;
+    return $date_obj->epoch;
 }
 
 
@@ -122,7 +126,9 @@ sub do_twitter_poll
     my ($self, $nt) = @_;
 
     debug 'waking up';
-    my $sleep = 0;
+
+    # fetch new tweets
+    my @tweets;
     foreach my $search (@{$searches}) {
 	
 	if (my $result = $nt->search( {
@@ -130,19 +136,34 @@ sub do_twitter_poll
 	    'since_id' => $search->{lastid} } )
 	    ) {
 
-	    $search->{lastid} = $result->{max_id};
-	    foreach my $tweet (reverse @{$result->{results}}) {
-		$self->privmsg($ircchannel, format_date($tweet->{created_at}) . ' @'.$tweet->{from_user}.': '.$tweet->{text});
+	    # convert dates to epoch
+	    my @results = @{$result->{results}};
+	    foreach my $result (@results) {
+		$result->{epoch} = get_epoch( $result->{created_at} );
 	    }
 
-	    # don't flood!
-	    $sleep += 0.5;
-	    sleep int($sleep);
+	    push @tweets, @results;
+	    $search->{lastid} = $result->{max_id};
+
 	} else {
 	    # TODO: or print errors to IRC?
 	    debug "search error: $nt->http_error $nt->http_message\n";
 	}
     }
+
+    # mix and sort different searches
+    @tweets = sort { $a->{epoch} <=> $b->{epoch} } @tweets;
+
+    # print tweets
+    my $sleep = 0;
+    foreach my $tweet (@tweets) {
+	$self->privmsg($ircchannel, format_epoch($tweet->{epoch}) . ' @'.$tweet->{from_user}.': '.$tweet->{text});
+
+	# don't flood!
+	$sleep += 0.5;
+	sleep int($sleep);
+    }
+
     write_cachefile;
 
     debug "sleeping $pollinterval...";
