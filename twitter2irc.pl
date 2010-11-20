@@ -98,6 +98,7 @@ sub on_join {
 sub on_nick_taken {
     my ($self) = shift;
     $self->nick(substr($self->nick, -1) . substr($self->nick, 0, 8));
+    debug 'NICK ALREADY TAKEN, changed to ' . $self->nick;
 }
 
 sub on_disconnect {
@@ -112,7 +113,8 @@ sub on_public {
     my ($self, $event) = @_;
     my ($arg) = ($event->args);
 
-    if ($arg =~ /$ircnick.*begone!/i) {
+    my $myname = $self->nick;
+    if ($arg =~ /$myname.*begone!/i) {
 	debug 'received quit signal';
         $self->quit("As you wish, Mylady.");
         exit 0;
