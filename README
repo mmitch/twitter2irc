@@ -1,0 +1,22 @@
+twitter2irc - simple Twitter to IRC gateway
+
+Copyright (C) 2010  Christian Garbs
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Homepage: http://github.com/mmitch/twitter2irc/
+
+
+
+This script regularly does Twitter searches and announces the results
+via IRC.  To adapt it to your needs, edit the CONFIGURATION section at
+the top of the script.  To add/change/remove searches later, stop the
+script and edit your cache file at ~/.twitter2irc
+
+This has not yet been tested in a production environment, only on my
+local IRC server.  This qualifies as a bot, it propably misbehaves in
+one way or another and might get you banned or worse.
+Proceed with caution.  You have been warned.
