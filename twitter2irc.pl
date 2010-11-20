@@ -160,7 +160,7 @@ sub do_twitter_poll
 	$self->privmsg($ircchannel, format_epoch($tweet->{epoch}) . ' @'.$tweet->{from_user}.': '.$tweet->{text});
 
 	# don't flood!
-	$sleep += 0.5;
+	$sleep += 0.5 unless $sleep > 4;
 	sleep int($sleep);
     }
 
