@@ -1,4 +1,12 @@
 #!/usr/bin/perl -w
+
+#
+# twitter2irc - simple Twitter to IRC gateway
+# Copyright (C) 2010  Christian Garbs <mitch@cgarbs.de>
+# Licensed under GNU GPL v3 or later.
+# Homepage: http://github.com/mmitch/twitter2irc
+#
+
 use strict;
 use Data::Dumper;
 use DateTime;
