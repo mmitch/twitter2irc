@@ -22,14 +22,14 @@ my $cachefile    = "$ENV{HOME}/.twitter2irc";
 my $pollinterval = 180;
 my $ircnick      = 'zwobot';
 my $ircserver    = 'irc.mitch.h.shuttle.de';
-my $ircchannel   = '#hannover';
 my $irccharset   = 'utf8';
 
 # initial configuration seed (when no cache exists)
 my $searches = [
     {
-	'search' => '#hannover',
-	'lastid' => 0
+	'search'  => '#hannover',
+	'lastid'  => 0,
+	'channel' => '#test'
     }
     ];
 
@@ -63,7 +63,7 @@ sub check_hash
     my $count = 0;
     foreach my $search (@{$searches}) {
 	$count++;
-	foreach my $key (qw/search lastid/) {
+	foreach my $key (qw/search lastid channel/) {
 	    die "key `$key' missing from search #$count in `$cachefile':\n" . Dumper($search)
 		unless exists $search->{$key};
 	}
@@ -98,7 +98,12 @@ sub on_connect {
     my $self = shift;
     debug "connected to $ircserver";
     debug 'joining channel...';
-    $self->join($ircchannel);
+    my %joined;
+    foreach my $search (@{$searches}) {
+	my $channel = $search->{channel};
+	$self->join($channel) unless exists $joined{$channel};
+	$joined{$channel}++;
+    }
 }
 
 sub on_join {
@@ -156,6 +161,7 @@ sub do_twitter_poll
 	    my @results = @{$result->{results}};
 	    foreach my $result (@results) {
 		$result->{epoch} = get_epoch( $result->{created_at} );
+		$result->{channel} = $search->{channel};
 	    }
 
 	    push @tweets, @results;
@@ -173,7 +179,7 @@ sub do_twitter_poll
     # print tweets
     my $sleep = 0;
     foreach my $tweet (@tweets) {
-	$self->privmsg($ircchannel, format_epoch($tweet->{epoch}) . ' @'.$tweet->{from_user}.': '.$tweet->{text});
+	$self->privmsg($tweet->{channel}, format_epoch($tweet->{epoch}) . ' @'.$tweet->{from_user}.': '.$tweet->{text});
 
 	# don't flood!
 	$sleep += 0.5 unless $sleep > 4;
