@@ -80,12 +80,6 @@ sub read_cachefile
     debug 'configuration restored: ' . Dumper($searches);
 }
 
-sub queue_twitter_poll
-{
-    
-    sleep $pollinterval;
-}
-
 
 # IRC callbacks (partially taken from Net::IRC's irctest example)
 sub on_connect {
