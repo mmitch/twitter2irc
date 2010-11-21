@@ -58,6 +58,18 @@ sub get_epoch
     return $date_obj->epoch;
 }
 
+sub check_hash
+{
+    my $count = 0;
+    foreach my $search (@{$searches}) {
+	$count++;
+	foreach my $key (qw/search lastid/) {
+	    die "key `$key' missing from search #$count in `$cachefile':\n" . Dumper($search)
+		unless exists $search->{$key};
+	}
+    }
+}
+
 
 # persistence
 sub write_cachefile
@@ -77,7 +89,7 @@ sub read_cachefile
     my $stored = <CACHE>;
     eval $stored;
     close CACHE or die "can't close `$cachefile': $!";
-    debug 'configuration restored: ' . Dumper($searches);
+    debug "configuration restored:\n" . Dumper($searches);
 }
 
 
@@ -192,6 +204,7 @@ if ( -r $cachefile) {
 } else {
     write_cachefile;
 }
+check_hash;
 
 # initialize Net::IRC
 debug 'initializing Net::IRC...';
