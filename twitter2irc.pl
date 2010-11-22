@@ -196,7 +196,21 @@ sub do_twitter_poll
 
 ##### STARTUP
 
+# choose cache file
+if (@ARGV > 1) {
+    print <<EOF;
+usage: twitter2irc.pl [cache file]
+EOF
+    ;
+    exit 0;
+}
+if (@ARGV == 1) {
+    $cachefile = $ARGV[0];
+}
+debug "using `$cachefile' as cache file";
+
 # initialize DateTime
+debug 'initializing DateTime...';
 $local_tz = DateTime::TimeZone->new( name => 'local' );
 $datetime_parser = DateTime::Format::Strptime->new(pattern => '%a, %d %b %Y %T %z')
     or die "can't create Date::Time::Format::Strptime.\n";
